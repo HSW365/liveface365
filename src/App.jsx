@@ -8,12 +8,12 @@ import {
 } from 'lucide-react';
 
 const looks = [
-  { id: 'studio', name: 'Studio Glow', type: 'Creator', emoji: '✨', color: 'lavender', desc: 'Soft light and a clean creator look' },
-  { id: 'cosmic', name: 'Cosmic Muse', type: 'Fantasy', emoji: '🌙', color: 'blue', desc: 'A dreamy, original digital persona' },
-  { id: 'pop', name: 'Pop Icon', type: 'Style', emoji: '💫', color: 'pink', desc: 'Bold colors and camera-ready energy' },
-  { id: 'comic', name: 'Comic Hero', type: 'Character', emoji: '⚡', color: 'lime', desc: 'A playful, fictional hero aesthetic' },
-  { id: 'retro', name: 'Retro Star', type: 'Vintage', emoji: '🪩', color: 'peach', desc: 'Warm throwback color treatment' },
-  { id: 'dream', name: 'Dreamscape', type: 'Fantasy', emoji: '🦋', color: 'mint', desc: 'An uplifting, surreal look' },
+  { id: 'studio', name: 'Studio Glow', type: 'Creator', emoji: 'S', color: 'lavender', desc: 'Soft light and a clean creator look' },
+  { id: 'cosmic', name: 'Cosmic Muse', type: 'Fantasy', emoji: 'C', color: 'blue', desc: 'A dreamy, original digital persona' },
+  { id: 'pop', name: 'Pop Icon', type: 'Style', emoji: 'P', color: 'pink', desc: 'Bold colors and camera-ready energy' },
+  { id: 'comic', name: 'Comic Hero', type: 'Character', emoji: 'H', color: 'lime', desc: 'A playful, fictional hero aesthetic' },
+  { id: 'retro', name: 'Retro Star', type: 'Vintage', emoji: 'R', color: 'peach', desc: 'Warm throwback color treatment' },
+  { id: 'dream', name: 'Dreamscape', type: 'Fantasy', emoji: 'D', color: 'mint', desc: 'An uplifting, surreal look' },
 ];
 
 const navItems = [
@@ -128,7 +128,7 @@ function App() {
           <button className="text-button" onClick={() => setShowHelp(true)}>Explore the studio <ArrowUpRight size={15} /></button>
         </div>
         <div className="sidebar-bottom">
-          <div className="status-line"><span className="status-dot" /> All systems ready</div>
+          <div className="status-line"><span className="status-dot" /> Frontend preview available</div>
           <button className="profile-button" onClick={() => notify('Account and billing will be available when sign-in is connected.')}>
             <span className="avatar-initials">HS</span><span className="profile-copy"><strong>HSW365 Creator</strong><small>Free workspace</small></span><MoreHorizontal size={19} />
           </button>
@@ -139,7 +139,7 @@ function App() {
         <header className="topbar">
           <div className="breadcrumbs"><span>Workspace</span><span className="crumb-slash">/</span><strong>{activeNav}</strong></div>
           <div className="topbar-actions">
-            <span className="plan-chip"><Sparkles size={13} /> CREATOR PLAN</span>
+            <span className="plan-chip"><Sparkles size={13} /> PREVIEW MODE</span>
             <button className="icon-button" aria-label="Help" onClick={() => setShowHelp(true)}><CircleHelp size={19} /></button>
             <button className="upgrade-button" onClick={() => notify('Subscription checkout will be connected in the billing phase.')}>Upgrade <ArrowUpRight size={15} /></button>
           </div>
@@ -173,7 +173,7 @@ function App() {
               ) : (
                 <div className="camera-placeholder">
                   <div className="placeholder-orb orb-one" /><div className="placeholder-orb orb-two" /><div className="placeholder-orb orb-three" />
-                  <div className="camera-illustration"><div className="illustration-halo" /><div className="illustration-head"><div className="illustration-hair" /><div className="illustration-face"><span className="eye left-eye" /><span className="eye right-eye" /><span className="nose" /><span className="smile" /></div></div><div className="illustration-body" /><span className="illustration-sparkle spark-a">✦</span><span className="illustration-sparkle spark-b">✧</span></div>
+                  <div className="camera-illustration minimal-portrait" aria-hidden="true"><span className="portrait-frame-line" /><span className="portrait-core" /><span className="portrait-base" /></div>
                   <div className="placeholder-copy"><strong>Your next look starts here.</strong><span>Turn on your camera to enter the studio.</span></div>
                   <button className="enable-camera" onClick={startCamera}><Camera size={17} /> Enable camera <ArrowUpRight size={15} /></button>
                   {cameraError && <div className="camera-error" role="alert">{cameraError}</div>}
