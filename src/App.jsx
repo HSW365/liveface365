@@ -44,6 +44,7 @@ function App() {
   const [recordingError, setRecordingError] = useState('');
   const recorderRef = useRef(null);
   const recordedChunksRef = useRef([]);
+  const recordingFrameRef = useRef(null);
 
   const currentLook = looks.find((look) => look.id === selectedLook) || looks[0];
   const lookFilters = {
@@ -54,7 +55,18 @@ function App() {
     retro: 'sepia(.32) saturate(1.2) contrast(1.04)',
     dream: 'hue-rotate(-18deg) saturate(1.28) brightness(1.08)',
   };
-  const cameraFilter = lookFilters[selectedLook] || lookFilters.studio;
+  const intensity = beauty / 100;
+  const cameraFilter = selectedLook === 'cosmic'
+    ? `hue-rotate(${24 * intensity}deg) saturate(${1 + .32 * intensity}) contrast(${1 + .06 * intensity})`
+    : selectedLook === 'pop'
+      ? `saturate(${1 + .65 * intensity}) contrast(${1 + .12 * intensity})`
+      : selectedLook === 'comic'
+        ? `saturate(${1 + .9 * intensity}) contrast(${1 + .24 * intensity})`
+        : selectedLook === 'retro'
+          ? `sepia(${.32 * intensity}) saturate(${1 + .2 * intensity}) contrast(${1 + .04 * intensity})`
+          : selectedLook === 'dream'
+            ? `hue-rotate(${-18 * intensity}deg) saturate(${1 + .28 * intensity}) brightness(${1 + .08 * intensity})`
+            : `brightness(${1 + .06 * intensity}) contrast(${1 + .04 * intensity}) saturate(${1 + .08 * intensity})`;
 
   useEffect(() => {
     if (cameraOn && videoRef.current && streamRef.current) {
@@ -114,13 +126,34 @@ function App() {
     if (!stream) { notify('Start your camera before recording.'); return; }
     if (!window.MediaRecorder) { setRecordingError('Recording is not supported in this browser.'); return; }
     try {
-      const types = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
+      const video = videoRef.current;
+      if (!video || !video.videoWidth || !video.videoHeight || !document.createElement('canvas').captureStream) {
+        setRecordingError('This browser cannot record the processed camera preview.'); return;
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const context = canvas.getContext('2d');
+      const drawFrame = () => {
+        if (!videoRef.current || videoRef.current.readyState < 2) {
+          recordingFrameRef.current = window.requestAnimationFrame(drawFrame); return;
+        }
+        context.filter = cameraFilter;
+        if (mirror) { context.save(); context.translate(canvas.width, 0); context.scale(-1, 1); context.drawImage(video, 0, 0, canvas.width, canvas.height); context.restore(); }
+        else context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        recordingFrameRef.current = window.requestAnimationFrame(drawFrame);
+      };
+      drawFrame();
+      const processedStream = canvas.captureStream(30);
+      const types = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
       const mimeType = types.find((type) => window.MediaRecorder.isTypeSupported(type));
-      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      const recorder = new MediaRecorder(processedStream, mimeType ? { mimeType } : undefined);
       recordedChunksRef.current = [];
       recorder.ondataavailable = (event) => { if (event.data && event.data.size) recordedChunksRef.current.push(event.data); };
       recorder.onerror = () => { setRecording(false); setRecordingError('Recording stopped because the browser reported an error.'); };
       recorder.onstop = () => {
+        if (recordingFrameRef.current) window.cancelAnimationFrame(recordingFrameRef.current);
+        processedStream.getTracks().forEach((track) => track.stop());
         const chunks = recordedChunksRef.current;
         if (!chunks.length) { setRecordingError('No recording data was produced. Try again.'); return; }
         const blob = new Blob(chunks, { type: recorder.mimeType || 'video/webm' });
@@ -142,6 +175,7 @@ function App() {
   };
 
   const stopRecording = () => {
+    if (recordingFrameRef.current) window.cancelAnimationFrame(recordingFrameRef.current);
     if (recorderRef.current && recorderRef.current.state !== 'inactive') recorderRef.current.stop();
     setRecording(false);
   };
