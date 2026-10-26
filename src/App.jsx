@@ -45,6 +45,15 @@ function App() {
   const recorderRef = useRef(null);
   const recordedChunksRef = useRef([]);
   const recordingFrameRef = useRef(null);
+  const apiBase = import.meta.env.VITE_API_BASE_URL || '';
+  const [sessionToken, setSessionToken] = useState(() => window.sessionStorage.getItem('liveface365_token') || '');
+  const [account, setAccount] = useState(null);
+  const [subscription, setSubscription] = useState(null);
+  const [authMode, setAuthMode] = useState('login');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authBusy, setAuthBusy] = useState(false);
+  const [authError, setAuthError] = useState('');
 
   const currentLook = looks.find((look) => look.id === selectedLook) || looks[0];
   const lookFilters = {
@@ -190,6 +199,75 @@ function App() {
   const notify = (message) => {
     setToast(message);
     window.setTimeout(() => setToast(''), 2600);
+  };
+
+  const apiCall = async (path, options = {}) => {
+    if (!apiBase) throw new Error('API address is not configured in the production build yet.');
+    const response = await fetch(apiBase.replace(/\\/$/, '') + path, {
+      ...options,
+      headers: { 'Content-Type': 'application/json', ...(sessionToken ? { Authorization: 'Bearer ' + sessionToken } : {}), ...(options.headers || {}) },
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || 'Request failed. Try again.');
+    return data;
+  };
+
+  const loadAccount = async () => {
+    if (!sessionToken) return;
+    try {
+      const data = await apiCall('/api/me');
+      setAccount(data.user);
+      setSubscription(data.subscription);
+    } catch (error) {
+      setAccount(null);
+      setSubscription(null);
+      if (error.message.includes('Session expired') || error.message.includes('Sign in')) {
+        window.sessionStorage.removeItem('liveface365_token');
+        setSessionToken('');
+      }
+    }
+  };
+
+  useEffect(() => { if (sessionToken) loadAccount(); }, [sessionToken]);
+
+  const submitAuth = async (event) => {
+    event.preventDefault();
+    setAuthError('');
+    setAuthBusy(true);
+    try {
+      const data = await apiCall('/api/auth/' + (authMode === 'register' ? 'register' : 'login'), {
+        method: 'POST', body: JSON.stringify({ email: authEmail, password: authPassword }),
+      });
+      window.sessionStorage.setItem('liveface365_token', data.token);
+      setSessionToken(data.token);
+      setAccount(data.user);
+      setAuthPassword('');
+      notify(authMode === 'register' ? 'Account created.' : 'Signed in.');
+    } catch (error) { setAuthError(error.message); }
+    finally { setAuthBusy(false); }
+  };
+
+  const signOut = () => {
+    window.sessionStorage.removeItem('liveface365_token');
+    setSessionToken('');
+    setAccount(null);
+    setSubscription(null);
+    notify('Signed out.');
+  };
+
+  const startCheckout = async (plan) => {
+    if (!sessionToken) { setActiveNav('Account & billing'); setAuthError('Sign in or create an account before choosing a subscription.'); notify('Sign in to continue to checkout.'); return; }
+    try {
+      const data = await apiCall('/api/billing/checkout', { method: 'POST', body: JSON.stringify({ plan }) });
+      window.location.assign(data.url);
+    } catch (error) { setAuthError(error.message); notify(error.message); }
+  };
+
+  const openBillingPortal = async () => {
+    try {
+      const data = await apiCall('/api/billing/portal', { method: 'POST', body: JSON.stringify({}) });
+      window.location.assign(data.url);
+    } catch (error) { setAuthError(error.message); notify(error.message); }
   };
 
   const copySetup = async () => {
@@ -357,9 +435,18 @@ function App() {
         </section>}
         {activeNav === 'Account & billing' && <section className="systems-page">
           <div className="system-intro"><div><span className="step-label">WORKSPACE SETTINGS / 03</span><h1>Account & <span>billing.</span></h1><p>Proposed subscription structure. No paid checkout is active yet.</p></div><span className="system-status planned"><i /> CHECKOUT NOT CONNECTED</span></div>
-          <div className="system-hero account-hero"><div className="account-initial">HS</div><div><small>CURRENT WORKSPACE</small><h2>HSW365 Creator</h2><p>Free preview workspace · Sign-in is not connected.</p></div><span className="status-tag">PREVIEW</span></div>
+          <div className="system-hero account-hero"><div className="account-initial">HS</div><div><small>CURRENT WORKSPACE</small><h2>{account ? account.email : 'HSW365 Creator'}</h2><p>{account ? ((subscription?.plan || 'free').toUpperCase() + ' plan · ' + (subscription?.status || 'inactive')) : 'Sign in to connect your creator workspace.'}</p></div>{account ? <button className="status-tag account-action" onClick={signOut}>SIGN OUT</button> : <span className="status-tag">PREVIEW</span>}</div>
+          {!account && <form className="account-auth-panel" onSubmit={submitAuth}>
+            <div className="account-auth-heading"><div><small>CREATOR ACCOUNT</small><h2>{authMode === 'register' ? 'Create your account' : 'Welcome back'}</h2><p>{apiBase ? 'Your account connects to the LiveFace365 API.' : 'Account API URL still needs to be configured for the live site.'}</p></div><div className="auth-switch"><button type="button" className={authMode === 'login' ? 'selected' : ''} onClick={() => { setAuthMode('login'); setAuthError(''); }}>Sign in</button><button type="button" className={authMode === 'register' ? 'selected' : ''} onClick={() => { setAuthMode('register'); setAuthError(''); }}>Create account</button></div></div>
+            <label className="auth-label">Email address<input type="email" autoComplete="email" required value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} placeholder="you@example.com" /></label>
+            <label className="auth-label">Password<input type="password" autoComplete={authMode === 'register' ? 'new-password' : 'current-password'} required minLength={authMode === 'register' ? 12 : 1} value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} placeholder={authMode === 'register' ? 'At least 12 characters' : 'Your password'} /></label>
+            {authError && <p className="auth-error" role="alert">{authError}</p>}
+            <button className="modal-primary auth-submit" type="submit" disabled={authBusy || !apiBase}>{authBusy ? 'Please wait…' : authMode === 'register' ? 'Create account' : 'Sign in'} <ArrowUpRight size={15} /></button>
+            {!apiBase && <p className="auth-note">The backend must be deployed and VITE_API_BASE_URL set in the Pages build before sign-in can work.</p>}
+          </form>}
+          {account && <div className="account-auth-panel signed-in-panel"><div><small>ACCOUNT STATUS</small><strong>{subscription?.status || 'inactive'}</strong><p>Paid access is granted only after Stripe confirms the subscription through a verified webhook.</p></div><button className="control-button" onClick={openBillingPortal}>Manage billing <ExternalLink size={15}/></button></div>}
           <div className="plans-heading"><span className="step-label">PROPOSED PLANS</span><h2>Simple tiers. Clear value.</h2><p>These prices are proposals, not active Stripe products.</p></div>
-          <div className="plan-cards"><article><small>01 / START</small><h3>Free</h3><div className="plan-price">$0 <span>/ month</span></div><p>Explore the interface and test local camera preview.</p><ul><li>Camera preview</li><li>Look library</li><li>Setup guidance</li></ul><button onClick={() => notify('You are using the free preview.')}>Current preview</button></article><article className="plan-featured"><small>02 / CREATOR</small><h3>Creator Pro</h3><div className="plan-price">$12 <span>/ month</span></div><p>Proposed plan for creators who need more tools.</p><ul><li>Planned creator features</li><li>Account workspace</li><li>Usage controls</li></ul><button onClick={() => notify('Creator Pro is a proposal. Checkout is not connected.')}>Not yet available</button></article><article><small>03 / STUDIO</small><h3>Studio Pro</h3><div className="plan-price">$25 <span>/ month</span></div><p>Proposed plan for advanced creator workflows.</p><ul><li>Planned studio features</li><li>Team controls</li><li>Priority processing</li></ul><button onClick={() => notify('Studio Pro is a proposal. Checkout is not connected.')}>Not yet available</button></article></div>
+          <div className="plan-cards"><article><small>01 / START</small><h3>Free</h3><div className="plan-price">$0 <span>/ month</span></div><p>Explore the interface and test local camera preview.</p><ul><li>Camera preview</li><li>Look library</li><li>Setup guidance</li></ul><button onClick={() => { setActiveNav('Studio'); notify('Free preview is available.'); }}>Open free preview</button></article><article className="plan-featured"><small>02 / CREATOR</small><h3>Creator Pro</h3><div className="plan-price">$12 <span>/ month</span></div><p>Proposed plan for creators who need more tools.</p><ul><li>Planned creator features</li><li>Account workspace</li><li>Usage controls</li></ul><button onClick={() => startCheckout('creator')}>Choose Creator Pro <ArrowUpRight size={14}/></button></article><article><small>03 / STUDIO</small><h3>Studio Pro</h3><div className="plan-price">$25 <span>/ month</span></div><p>Proposed plan for advanced creator workflows.</p><ul><li>Planned studio features</li><li>Team controls</li><li>Priority processing</li></ul><button onClick={() => startCheckout('studio')}>Choose Studio Pro <ArrowUpRight size={14}/></button></article></div>
           <div className="system-note"><LockKeyhole size={18}/><p><strong>Billing security.</strong> Stripe secret keys belong on the backend. Paid access must follow a verified webhook and server-side entitlement check.</p></div>
         </section>}
       </main>
