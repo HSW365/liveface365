@@ -203,7 +203,7 @@ function App() {
 
   const apiCall = async (path, options = {}) => {
     if (!apiBase) throw new Error('API address is not configured in the production build yet.');
-    const response = await fetch(apiBase.replace(/\\/$/, '') + path, {
+    const response = await fetch(apiBase.replace(/\/$/, '') + path, {
       ...options,
       headers: { 'Content-Type': 'application/json', ...(sessionToken ? { Authorization: 'Bearer ' + sessionToken } : {}), ...(options.headers || {}) },
     });
