@@ -146,3 +146,24 @@ button{cursor:pointer}
 .local-media-note{margin:8px 0 0;color:#777982;font-size:10px;line-height:1.6}
 @keyframes record-pulse{50%{opacity:.35}}
 @media(max-width:700px){.preview-controls .control-button{flex:1 1 calc(50% - 8px)}.preview-controls .go-live-button{flex:1 1 100%;margin-left:0}.local-media-note{font-size:11px}}
+
+.account-auth-panel{margin:0 0 22px;padding:22px;border:1px solid var(--border,#dedee5);border-radius:16px;background:var(--panel,#fff);display:grid;gap:18px}
+.account-auth-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.account-auth-heading h2{margin:7px 0;font-size:22px}
+.account-auth-heading p,.signed-in-panel p{margin:0;color:var(--muted,#737582);font-size:12px;line-height:1.6}
+.account-auth-heading small,.signed-in-panel small{font-size:10px;letter-spacing:.12em;color:var(--muted,#737582);font-weight:700}
+.auth-switch{display:flex;gap:4px;padding:4px;border:1px solid var(--border,#dedee5);border-radius:10px;flex-shrink:0}
+.auth-switch button{border:0;background:transparent;border-radius:7px;padding:8px 10px;font:inherit;font-size:11px;cursor:pointer;color:var(--muted,#737582)}
+.auth-switch button.selected{background:#17171b;color:#fff}
+.auth-label{display:grid;gap:7px;font-size:12px;font-weight:600;color:var(--text,#24242a)}
+.auth-label input{width:100%;box-sizing:border-box;border:1px solid var(--border,#dedee5);border-radius:9px;padding:12px 13px;background:transparent;color:inherit;font:inherit;font-weight:400;outline-offset:3px}
+.auth-label input:focus{border-color:#777}
+.auth-submit{width:max-content;min-width:160px;display:flex;align-items:center;justify-content:center;gap:8px}
+.auth-submit:disabled{opacity:.5;cursor:not-allowed}
+.auth-error{margin:0;color:#b12e37;font-size:12px;line-height:1.5}
+.auth-note{margin:0;color:var(--muted,#737582);font-size:11px;line-height:1.6}
+.signed-in-panel{display:flex;align-items:center;justify-content:space-between;gap:20px}
+.signed-in-panel strong{display:block;margin:7px 0;text-transform:capitalize}
+.account-action{cursor:pointer;background:transparent;border:1px solid var(--border,#dedee5);padding:8px 12px;border-radius:8px;color:inherit}
+.plan-cards button{display:flex;align-items:center;justify-content:center;gap:6px}
+@media(max-width:620px){.account-auth-heading,.signed-in-panel{flex-direction:column}.auth-switch{width:100%}.auth-switch button{flex:1}.auth-submit{width:100%}}
