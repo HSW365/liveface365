@@ -15,5 +15,8 @@
     "react-dom": "^18.3.1",
     "vite": "^6.0.7"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "engines": {
+    "node": ">=20.19.0"
+  }
 }
