@@ -4,7 +4,7 @@ import {
   CircleHelp, Clapperboard, Copy, Crown, ExternalLink, Eye, EyeOff, Film,
   FlipHorizontal, Gauge, Heart, Info, Layers3, Link2, LockKeyhole, Monitor,
   MoreHorizontal, Radio, Settings2, ShieldCheck, Sparkles, Square, Users,
-  Video, WandSparkles, X, Zap
+  Video, WandSparkles, X, Zap, Server, Code2
 } from 'lucide-react';
 
 const looks = [
@@ -20,6 +20,9 @@ const navItems = [
   { label: 'Studio', icon: Aperture },
   { label: 'My looks', icon: Layers3 },
   { label: 'Stream setup', icon: Radio },
+  { label: 'Frontend', icon: Monitor },
+  { label: 'Backend', icon: Server },
+  { label: 'Account & billing', icon: LockKeyhole },
 ];
 
 function App() {
@@ -113,6 +116,7 @@ function App() {
               if (label === 'Stream setup') setStreamModal(true);
               if (label === 'My looks') { setActiveTab('All looks'); document.getElementById('looks')?.scrollIntoView({ behavior: 'smooth' }); }
               if (label === 'Studio') window.scrollTo({ top: 0, behavior: 'smooth' });
+              if (label === 'Frontend' || label === 'Backend' || label === 'Account & billing') window.scrollTo({ top: 0, behavior: 'smooth' });
             }}>
               <Icon size={18} /><span>{label}</span>{label === 'My looks' && <span className="nav-count">06</span>}
             </button>
@@ -141,6 +145,7 @@ function App() {
           </div>
         </header>
 
+        {(activeNav === 'Studio' || activeNav === 'My looks' || activeNav === 'Stream setup') && <>
         <section className="welcome-row">
           <div>
             <div className="eyebrow"><span className="eyebrow-line" /> YOUR CREATIVE SPACE</div>
@@ -217,6 +222,38 @@ function App() {
         </section>
 
         <footer className="footer"><a className="footer-brand" href="#"><span className="mini-brand-mark"><Aperture size={14} /></span> LIVEFACE365 <span>BY HSW365</span></a><span>Built for the next generation of creators.</span><div><button onClick={() => setShowHelp(true)}>Help center</button><button onClick={() => notify('Privacy policy page will be published before public launch.')}>Privacy</button><button onClick={() => notify('Terms page will be published before public launch.')}>Terms</button></div></footer>
+        </>}
+        {activeNav === 'Frontend' && <section className="systems-page">
+          <div className="system-intro"><div><span className="step-label">PRODUCT SYSTEMS / 01</span><h1>Frontend <span>experience.</span></h1><p>Everything the creator sees and interacts with in the browser.</p></div><span className="system-status"><i /> STATIC APP AVAILABLE</span></div>
+          <div className="system-hero"><div className="system-icon"><Monitor size={22} /></div><div><small>CLIENT APPLICATION</small><h2>React + Vite</h2><p>Responsive single-page interface hosted on GitHub Pages.</p></div><span className="status-tag">CURRENT</span></div>
+          <div className="system-metrics"><article><small>INTERFACE AREAS</small><strong>05</strong><p>Studio, looks, frontend, backend, account</p></article><article><small>CAMERA ACCESS</small><strong>Local</strong><p>Browser permission, local preview</p></article><article><small>VIDEO UPLOAD</small><strong>None</strong><p>No video sent to a server in this build</p></article></div>
+          <div className="system-table"><div className="system-table-head"><div><span className="step-label">CAPABILITY REGISTER</span><h2>What works today</h2></div><span>LIVE VS. PLANNED</span></div>
+            {[['Camera preview','AVAILABLE','Uses browser camera permission and displays a local feed.'],['Look selection','AVAILABLE','Changes the selected look in the interface only.'],['Responsive navigation','AVAILABLE','Studio navigation adapts across desktop and mobile.'],['Face transformation','PLANNED','Needs a real-time rendering provider or processing pipeline.'],['Streaming output','PLANNED','Needs a supported video output and platform integration.']].map(([name,state,detail]) => <div className="system-row" key={name}><i className={state === 'AVAILABLE' ? 'ready' : ''}/><div><strong>{name}</strong><small>{detail}</small></div><span className={state === 'AVAILABLE' ? 'ready-text' : ''}>{state}</span></div>)}
+          </div>
+          <div className="system-note"><ShieldCheck size={18}/><p><strong>Privacy by design.</strong> The current camera feed stays in your browser. Any future processing must disclose what data leaves the device and why.</p></div>
+        </section>}
+        {activeNav === 'Backend' && <section className="systems-page">
+          <div className="system-intro"><div><span className="step-label">PRODUCT SYSTEMS / 02</span><h1>Backend <span>foundation.</span></h1><p>A transparent readiness map for the services needed to operate a secure, monetized product.</p></div><span className="system-status planned"><i /> NOT CONNECTED</span></div>
+          <div className="backend-warning"><Server size={21}/><div><strong>No production backend is connected.</strong><p>GitHub Pages hosts static files. Accounts, billing, AI processing and protected APIs need a separate server-side layer.</p></div></div>
+          <div className="backend-cards">{[
+            ['01','Authentication','Sign-in, sessions, password recovery and account ownership.',LockKeyhole,'NOT BUILT'],
+            ['02','Billing & entitlements','Stripe Checkout, verified webhooks, cancellation and paid access.',Zap,'NOT CONNECTED'],
+            ['03','Processing API','Rendering jobs, provider credentials and usage limits.',WandSparkles,'NOT CONNECTED'],
+            ['04','Streaming output','Supported output path and platform integration health.',Radio,'NOT BUILT'],
+            ['05','Privacy & data','Minimal account storage, retention, deletion and audit trail.',ShieldCheck,'NOT BUILT'],
+            ['06','Operations','Error monitoring, rate limits, abuse protection and deployment checks.',Settings2,'NOT BUILT']
+          ].map(([n,title,desc,Icon,status]) => <article className="backend-card" key={n}><div className="backend-card-top"><span>{n}</span><Icon size={18}/></div><h3>{title}</h3><p>{desc}</p><span className="backend-state">{status}</span></article>)}</div>
+          <div className="system-table build-order"><div className="system-table-head"><div><span className="step-label">IMPLEMENTATION ORDER</span><h2>Build the foundation first.</h2></div></div>
+            {[['01','Choose the API and data layer','Use a server host and database compatible with the existing app and budget.'],['02','Connect identity and billing','Keep Stripe secret keys server-side; verify signed webhooks before granting access.'],['03','Enforce plan access','Check subscription entitlements on the server, not just in the UI.'],['04','Integrate processing and output','Choose the provider, then test consent, latency, reliability and failure handling.']].map(([n,title,desc]) => <div className="build-row" key={n}><span>{n}</span><div><strong>{title}</strong><small>{desc}</small></div></div>)}
+          </div>
+        </section>}
+        {activeNav === 'Account & billing' && <section className="systems-page">
+          <div className="system-intro"><div><span className="step-label">WORKSPACE SETTINGS / 03</span><h1>Account & <span>billing.</span></h1><p>Proposed subscription structure. No paid checkout is active yet.</p></div><span className="system-status planned"><i /> CHECKOUT NOT CONNECTED</span></div>
+          <div className="system-hero account-hero"><div className="account-initial">HS</div><div><small>CURRENT WORKSPACE</small><h2>HSW365 Creator</h2><p>Free preview workspace · Sign-in is not connected.</p></div><span className="status-tag">PREVIEW</span></div>
+          <div className="plans-heading"><span className="step-label">PROPOSED PLANS</span><h2>Simple tiers. Clear value.</h2><p>These prices are proposals, not active Stripe products.</p></div>
+          <div className="plan-cards"><article><small>01 / START</small><h3>Free</h3><div className="plan-price">$0 <span>/ month</span></div><p>Explore the interface and test local camera preview.</p><ul><li>Camera preview</li><li>Look library</li><li>Setup guidance</li></ul><button onClick={() => notify('You are using the free preview.')}>Current preview</button></article><article className="plan-featured"><small>02 / CREATOR</small><h3>Creator Pro</h3><div className="plan-price">$12 <span>/ month</span></div><p>Proposed plan for creators who need more tools.</p><ul><li>Planned creator features</li><li>Account workspace</li><li>Usage controls</li></ul><button onClick={() => notify('Creator Pro is a proposal. Checkout is not connected.')}>Not yet available</button></article><article><small>03 / STUDIO</small><h3>Studio Pro</h3><div className="plan-price">$25 <span>/ month</span></div><p>Proposed plan for advanced creator workflows.</p><ul><li>Planned studio features</li><li>Team controls</li><li>Priority processing</li></ul><button onClick={() => notify('Studio Pro is a proposal. Checkout is not connected.')}>Not yet available</button></article></div>
+          <div className="system-note"><LockKeyhole size={18}/><p><strong>Billing security.</strong> Stripe secret keys belong on the backend. Paid access must follow a verified webhook and server-side entitlement check.</p></div>
+        </section>}
       </main>
 
       {toast && <div className="toast" role="status"><Check size={16} />{toast}</div>}
