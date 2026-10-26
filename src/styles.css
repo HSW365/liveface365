@@ -127,3 +127,14 @@ button{cursor:pointer}
 .plans-heading .step-label{font-size:10px}
 @media(max-width:1050px){.backend-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.system-intro{align-items:flex-start}.system-metrics article{padding:15px}}
 @media(max-width:650px){.systems-page{padding-top:24px}.system-intro{display:block;margin-bottom:22px}.system-intro h1{font-size:31px}.system-status{margin-top:17px}.system-hero{padding:16px;gap:12px;flex-wrap:wrap}.system-hero .status-tag{margin-left:60px}.system-metrics{grid-template-columns:1fr;gap:8px}.system-metrics article{padding:14px 16px}.system-metrics article strong{font-size:25px;margin:6px 0 2px}.system-table-head{padding:16px}.system-row{padding:14px 16px;gap:10px;align-items:flex-start}.system-row>span{font-size:8px;max-width:88px;text-align:right}.backend-warning{padding:16px}.backend-cards{grid-template-columns:1fr}.backend-card{min-height:160px}.backend-card h3{margin-top:15px}.build-row{padding:14px 16px}.plan-cards{grid-template-columns:1fr}.plan-cards article{padding:20px}.plan-cards article>p{min-height:0}.account-hero .status-tag{margin-left:60px}.topbar-actions{gap:7px}}
+
+/* Final art direction: monochrome marks, no decorative AI-style gradients */
+.look-emoji{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:600;color:#383833;filter:none}
+.look-art-star{display:none}
+.look-art-orbit{border-color:#c9c7c0}
+.camera-illustration.minimal-portrait{width:190px;height:155px;display:grid;place-items:center;transform:none;margin:0}
+.minimal-portrait .portrait-frame-line{position:absolute;width:126px;height:126px;border:1px solid #b9b7af;border-radius:50%}
+.minimal-portrait .portrait-core{position:absolute;width:47px;height:47px;border:1px solid #6b6962;border-radius:50%;top:25px;left:71px;background:#d4d2cb}
+.minimal-portrait .portrait-base{position:absolute;width:92px;height:42px;border:1px solid #6b6962;border-bottom:0;border-radius:52px 52px 0 0;left:48px;bottom:20px;background:#c7c5be}
+.minimal-portrait:after{content:'LF / 365';position:absolute;bottom:0;right:10px;font-size:8px;letter-spacing:1.5px;color:#77756f;font-weight:700}
+@media(max-width:650px){.camera-illustration.minimal-portrait{transform:scale(.9);margin:0}}
