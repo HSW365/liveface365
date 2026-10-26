@@ -138,3 +138,11 @@ button{cursor:pointer}
 .minimal-portrait .portrait-base{position:absolute;width:92px;height:42px;border:1px solid #6b6962;border-bottom:0;border-radius:52px 52px 0 0;left:48px;bottom:20px;background:#c7c5be}
 .minimal-portrait:after{content:'LF / 365';position:absolute;bottom:0;right:10px;font-size:8px;letter-spacing:1.5px;color:#77756f;font-weight:700}
 @media(max-width:650px){.camera-illustration.minimal-portrait{transform:scale(.9);margin:0}}
+
+.record-button.is-recording{border-color:#d94c4c;background:#fff1f1;color:#a92d2d}
+.record-button.is-recording svg{animation:record-pulse 1.1s ease-in-out infinite}
+.control-button:disabled{opacity:.45;cursor:not-allowed}
+.recording-error{margin:9px 0 0;color:#a92d2d;font-size:11px;line-height:1.5}
+.local-media-note{margin:8px 0 0;color:#777982;font-size:10px;line-height:1.6}
+@keyframes record-pulse{50%{opacity:.35}}
+@media(max-width:700px){.preview-controls .control-button{flex:1 1 calc(50% - 8px)}.preview-controls .go-live-button{flex:1 1 100%;margin-left:0}.local-media-note{font-size:11px}}
