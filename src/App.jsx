@@ -40,8 +40,21 @@ function App() {
   const [toast, setToast] = useState('');
   const [streamModal, setStreamModal] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [recordingError, setRecordingError] = useState('');
+  const recorderRef = useRef(null);
+  const recordedChunksRef = useRef([]);
 
   const currentLook = looks.find((look) => look.id === selectedLook) || looks[0];
+  const lookFilters = {
+    studio: 'brightness(1.06) contrast(1.04) saturate(1.08)',
+    cosmic: 'hue-rotate(24deg) saturate(1.32) contrast(1.06)',
+    pop: 'saturate(1.65) contrast(1.12)',
+    comic: 'saturate(1.9) contrast(1.24)',
+    retro: 'sepia(.32) saturate(1.2) contrast(1.04)',
+    dream: 'hue-rotate(-18deg) saturate(1.28) brightness(1.08)',
+  };
+  const cameraFilter = lookFilters[selectedLook] || lookFilters.studio;
 
   useEffect(() => {
     if (cameraOn && videoRef.current && streamRef.current) {
@@ -77,7 +90,64 @@ function App() {
     }
   };
 
+  const captureSnapshot = () => {
+    const video = videoRef.current;
+    if (!video || !video.videoWidth || !video.videoHeight) { notify('Start the camera before taking a snapshot.'); return; }
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const context = canvas.getContext('2d');
+    if (!context) { notify('Snapshot could not be created in this browser.'); return; }
+    if (mirror) { context.translate(canvas.width, 0); context.scale(-1, 1); }
+    context.filter = cameraFilter;
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const link = document.createElement('a');
+    link.download = 'liveface365-' + currentLook.id + '-' + new Date().toISOString().replace(/[:.]/g, '-') + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    notify('Snapshot saved to your device.');
+  };
+
+  const startRecording = () => {
+    setRecordingError('');
+    const stream = streamRef.current;
+    if (!stream) { notify('Start your camera before recording.'); return; }
+    if (!window.MediaRecorder) { setRecordingError('Recording is not supported in this browser.'); return; }
+    try {
+      const types = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
+      const mimeType = types.find((type) => window.MediaRecorder.isTypeSupported(type));
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      recordedChunksRef.current = [];
+      recorder.ondataavailable = (event) => { if (event.data && event.data.size) recordedChunksRef.current.push(event.data); };
+      recorder.onerror = () => { setRecording(false); setRecordingError('Recording stopped because the browser reported an error.'); };
+      recorder.onstop = () => {
+        const chunks = recordedChunksRef.current;
+        if (!chunks.length) { setRecordingError('No recording data was produced. Try again.'); return; }
+        const blob = new Blob(chunks, { type: recorder.mimeType || 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'liveface365-recording-' + new Date().toISOString().replace(/[:.]/g, '-') + '.webm';
+        link.click();
+        window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+        notify('Recording saved to your device.');
+      };
+      recorderRef.current = recorder;
+      recorder.start(1000);
+      setRecording(true);
+      notify('Recording started. Keep this tab open while recording.');
+    } catch {
+      setRecordingError('Could not start recording. Check browser support and camera permission.');
+    }
+  };
+
+  const stopRecording = () => {
+    if (recorderRef.current && recorderRef.current.state !== 'inactive') recorderRef.current.stop();
+    setRecording(false);
+  };
+
   const stopCamera = () => {
+    if (recorderRef.current && recorderRef.current.state !== 'inactive') stopRecording();
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
     setCameraOn(false);
@@ -169,7 +239,7 @@ function App() {
             <div className={`camera-stage ${cameraOn ? 'camera-live' : ''} look-${currentLook.color}`}>
               <div className="stage-topline"><span className="live-indicator"><i /> {cameraOn ? 'CAMERA ON' : 'STUDIO PREVIEW'}</span><span className="stage-resolution"><span /> 16:9 · HD</span></div>
               {cameraOn ? (
-                <video ref={videoRef} className={`camera-video ${mirror ? 'mirrored' : ''}`} autoPlay playsInline muted />
+                <video ref={videoRef} className={`camera-video ${mirror ? 'mirrored' : ''}`} style={{ filter: cameraFilter }} autoPlay playsInline muted />
               ) : (
                 <div className="camera-placeholder">
                   <div className="placeholder-orb orb-one" /><div className="placeholder-orb orb-two" /><div className="placeholder-orb orb-three" />
@@ -186,8 +256,12 @@ function App() {
               <button className="control-button" onClick={() => cameraOn ? stopCamera() : startCamera()}><Video size={17} /> {cameraOn ? 'Turn camera off' : 'Start camera'}</button>
               <button className="control-button" onClick={() => { setMirror(!mirror); notify(mirror ? 'Mirror preview disabled' : 'Mirror preview enabled'); }}><FlipHorizontal size={17} /> Flip</button>
               <button className="control-button" onClick={() => setShowSettings(!showSettings)}><Gauge size={17} /> Adjust look</button>
+              <button className="control-button" onClick={captureSnapshot} disabled={!cameraOn}><Camera size={16} /> Snapshot</button>
+              <button className={`control-button record-button ${recording ? 'is-recording' : ''}`} onClick={recording ? stopRecording : startRecording} disabled={!cameraOn}>{recording ? <Square size={14} fill="currentColor" /> : <Film size={16} />}{recording ? 'Stop & save' : 'Record locally'}</button>
               <button className="go-live-button" onClick={() => setStreamModal(true)}><Radio size={17} /> Stream setup <ArrowUpRight size={15} /></button>
             </div>
+            {recordingError && <p className="recording-error" role="alert">{recordingError}</p>}
+            <p className="local-media-note">Looks are real-time color treatments—not AI face replacement. Snapshots and recordings stay in this browser until you save them.</p>
             <div className="privacy-note"><ShieldCheck size={16} /><span><strong>Your camera stays yours.</strong> This preview runs in your browser. Live streaming and AI transformation need their respective integrations.</span><button aria-label="Learn about privacy" onClick={() => setShowHelp(true)}><Info size={15} /></button></div>
           </div>
 
