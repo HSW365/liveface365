@@ -74,7 +74,7 @@ app.post('/api/billing/checkout', apiLimit, express.json({limit:'10kb'}), auth, 
     const customerQ=await pool.query('SELECT stripe_customer_id FROM subscriptions WHERE user_id=$1 AND stripe_customer_id IS NOT NULL',[req.identity.sub]);
     const customer=customerQ.rows[0]?.stripe_customer_id;
     const base=process.env.FRONTEND_URL||'https://hsw365.github.io/liveface365';
-    const session=await stripe.checkout.sessions.create({mode:'subscription',line_items:[{price,quantity:1}],customer:customer||undefined,customer_email:customer?undefined:userQ.rows[0].email,client_reference_id:req.identity.sub,metadata:{userId:req.identity.sub,plan},subscription_data:{metadata:{userId:req.identity.sub,plan}},success_url:base+'/?billing=success',cancel_url:base+'/?billing=cancelled',allow_promotion_codes:true});
+    const session=await stripe.checkout.sessions.create({mode:'subscription',line_items:[{price,quantity:1}],customer:customer||undefined,customer_email:customer?undefined:userQ.rows[0].email,client_reference_id:req.identity.sub,metadata:{userId:req.identity.sub,plan},subscription_data:{trial_period_days:3,metadata:{userId:req.identity.sub,plan}},success_url:base+'/?billing=success',cancel_url:base+'/?billing=cancelled',allow_promotion_codes:true});
     res.json({url:session.url});
   } catch(e) { console.error('checkout',e.message); res.status(502).json({error:'Could not start checkout. Verify Stripe price IDs and account configuration.'}); }
 });
