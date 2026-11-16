@@ -12,7 +12,7 @@ const app = express();
 const port = Number(process.env.PORT || 10000);
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, ssl: process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('localhost') ? { rejectUnauthorized: false } : false, max: 10, connectionTimeoutMillis: 5000 });
 const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
-const origins = (process.env.FRONTEND_ORIGINS || 'https://hsw365.github.io,https://hsw365.co').split(',').map(s => s.trim()).filter(Boolean);
+const origins = (process.env.FRONTEND_ORIGINS || 'https://hsw365.github.io,https://hsw365.net').split(',').map(s => s.trim()).filter(Boolean);
 app.set('trust proxy', 1);
 app.use(helmet());
 app.use(cors({ origin(origin, cb) { if (!origin || origins.includes(origin)) return cb(null, true); return cb(new Error('Origin is not allowed.')); }, methods: ['GET','POST','OPTIONS'], allowedHeaders: ['Content-Type','Authorization'] }));

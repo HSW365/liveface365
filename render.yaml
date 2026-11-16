@@ -21,7 +21,7 @@ services:
       - key: FRONTEND_URL
         value: https://hsw365.github.io/liveface365
       - key: FRONTEND_ORIGINS
-        value: https://hsw365.github.io,https://hsw365.co
+        value: https://hsw365.github.io,https://hsw365.net
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: STRIPE_WEBHOOK_SECRET
